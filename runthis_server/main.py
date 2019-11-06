@@ -9,15 +9,19 @@ cnt = count(8080)
 procs = {}
 
 
-@app.route('/start', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 async def start():
+    data = await request.get_json()
+    print(data)
+
     port = str(next(cnt))
     proc = await asyncio.create_subprocess_shell(
-        " ".join(["/home/scopatz/Downloads/t/gotty", "-w", "--once", "-p", port, "xonsh"]),
+        " ".join(["/home/scopatz/Downloads/t/gotty", "-w", "--once", "-p", port,
+            #"xonsh"
+            "docker", "run", "--rm", "-it", "ubuntu:latest", "/bin/bash"
+        ]),
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE)
-    data = await request.get_data()
-    print(data)
     procs[port] = proc
     print(procs)
     return redirect("http://0.0.0.0:" + port)
