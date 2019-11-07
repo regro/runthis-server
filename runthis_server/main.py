@@ -1,6 +1,7 @@
 """Main entry point for runthis-server"""
 import os
 import asyncio
+import tempfile
 from itertools import count
 from argparse import ArgumentParser
 
@@ -14,37 +15,83 @@ procs = {}
 conf = cnt = None
 
 
-def get_subprocess_command():
+def _setup_run_python(d):
+    if conf.docker:
+        return ["-i", "/mnt/setup"]
+    else:
+        return ["-i", os.path.join(d.name, "setup")]
+
+
+def _setup_run_xonsh(d):
+    if conf.docker:
+        return ["--rc", "/mnt/setup"]
+    else:
+        return ["--rc", os.path.join(d.name, "setup")]
+
+
+SETUP_RUNNERS = [
+    ("py", _setup_run_python),
+    ("xonsh", _setup_run_xonsh),
+]
+
+
+def get_setup_run(d):
+    base = os.path.basename(conf.command)
+    for (lang, func) in SETUP_RUNNERS:
+        if lang in base:
+            rtn = func(d)
+            break
+    else:
+        rtn = []
+    return rtn
+
+
+def get_subprocess_command(data):
     global conf, cnt
     args = []
     port = str(next(cnt))
+    d = None
     # Apply tty server
     if conf.tty_server == "gotty":
         args.extend([conf.gotty_path, "-w", "--once", "-p", port])
     else:
         raise ValueError("tty_server " + conf.tty_server + " not recognized.")
 
+    # make setup file
+    setup = data.get("setup", "")
+    presetup = data.get("presetup", "")
+    if presetup or setup:
+        d = tempfile.TemporaryDirectory(prefix="setup")
+        with open(os.path.join(d.name, "setup"), 'wt') as f:
+            f.write(presetup)
+            f.write("\n")
+            f.write(setup)
+            setup_file = f.name
+
     # Apply docker
     if conf.docker:
-        args.extend(["docker", "run", "--rm", "-it", conf.docker_image])
+        args.extend(["docker", "run", "--rm", "-it"])
+        if presetup or setup:
+            args.extend(["-v", d.name + ":/mnt"])
+        args.append(conf.docker_image)
 
     args.append(conf.command)
+    if presetup or setup:
+        args.extend(get_setup_run(d))
     cmd = " ".join(args)
-    return cmd, port
+    return cmd, port, d
 
 
 @app.route('/', methods=['GET', 'POST'])
 async def root():
     data = await request.get_json()
-    print(data)
-
-    cmd, port = get_subprocess_command()
+    cmd, port, d = get_subprocess_command(data)
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
-    procs[port] = proc
+    procs[port] = (proc, d)
     print(procs)
     return redirect("http://0.0.0.0:" + port)
 
