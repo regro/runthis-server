@@ -51,6 +51,7 @@ def get_subprocess_command(data):
     args = []
     port = str(next(cnt))
     d = None
+    data = {} if data is None else data
     # Apply tty server
     if conf.tty_server == "gotty":
         args.extend([conf.gotty_path, "-w", "--once", "-p", port])
