@@ -51,7 +51,6 @@ def get_subprocess_command(data):
     args = []
     port = str(next(cnt))
     d = None
-    data = {} if data is None else data
     # Apply tty server
     if conf.tty_server == "gotty":
         args.extend([conf.gotty_path, "-w", "--once", "-p", port])
@@ -86,6 +85,10 @@ def get_subprocess_command(data):
 @app.route('/', methods=['GET', 'POST'])
 async def root():
     data = await request.get_json()
+    if data is None:
+        data = dict(request.args)
+    data = {} if data is None else data
+    print("data:", data)
     cmd, port, d = get_subprocess_command(data)
     proc = await asyncio.create_subprocess_shell(
         cmd,
