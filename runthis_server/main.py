@@ -65,7 +65,8 @@ def get_subprocess_command(data):
         with open(os.path.join(d.name, "setup"), 'wt') as f:
             f.write(presetup)
             f.write("\n")
-            f.write(setup)
+            if setup != "<pass>":
+                f.write(setup)
             setup_file = f.name
 
     # Apply docker
