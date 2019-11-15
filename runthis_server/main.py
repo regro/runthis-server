@@ -8,46 +8,16 @@ from argparse import ArgumentParser
 from quart import Quart, redirect, request
 
 from runthis_server.config import Config, get_config_from_yaml
+from runthis_server.langs import find_lang
 
 
 app = Quart("runthis-server")
 procs = {}
-conf = cnt = None
-
-
-def _setup_run_python(d):
-    if conf.docker:
-        return ["-i", "/mnt/setup"]
-    else:
-        return ["-i", os.path.join(d.name, "setup")]
-
-
-def _setup_run_xonsh(d):
-    if conf.docker:
-        return ["--rc", "/mnt/setup"]
-    else:
-        return ["--rc", os.path.join(d.name, "setup")]
-
-
-SETUP_RUNNERS = [
-    ("py", _setup_run_python),
-    ("xonsh", _setup_run_xonsh),
-]
-
-
-def get_setup_run(d):
-    base = os.path.basename(conf.command)
-    for (lang, func) in SETUP_RUNNERS:
-        if lang in base:
-            rtn = func(d)
-            break
-    else:
-        rtn = []
-    return rtn
+conf = cnt = lang = None
 
 
 def get_subprocess_command(data):
-    global conf, cnt
+    global conf, cnt, lang
     args = []
     port = str(next(cnt))
     d = None
@@ -65,8 +35,8 @@ def get_subprocess_command(data):
         with open(os.path.join(d.name, "setup"), 'wt') as f:
             f.write(presetup)
             f.write("\n")
-            if setup != "<pass>":
-                f.write(setup)
+            f.write(lang.echo_setup(setup))
+            f.write(setup)
             setup_file = f.name
 
     # Apply docker
@@ -78,7 +48,7 @@ def get_subprocess_command(data):
 
     args.append(conf.command)
     if presetup or setup:
-        args.extend(get_setup_run(d))
+        args.extend(lang.run_setup_args(conf, d))
     cmd = " ".join(args)
     return cmd, port, d
 
@@ -117,7 +87,7 @@ def make_parser():
 
 
 def main(args=None):
-    global conf, cnt
+    global conf, cnt, lang
 
     p = make_parser()
     ns = p.parse_args(args=args)
@@ -127,6 +97,7 @@ def main(args=None):
     else:
         print('No config file found!')
         conf = Config()
+    lang = find_lang(conf)
 
     # start up server
     print(conf)
