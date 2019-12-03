@@ -1,0 +1,43 @@
+{% set name = "runthis-server" %}
+{% set version = "0.0.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}-dev
+
+source:
+  path: ..
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+  run:
+    - python >=3.6
+    - ruamel.yaml
+    - quart
+
+test:
+  imports:
+    - runthis.server
+  commands:
+    - runthis-server --help
+    - pytest
+  requires:
+    - pytest
+
+about:
+  home: https://github.com/regro/runthis-server
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - scopatz
+
