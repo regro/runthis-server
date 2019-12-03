@@ -24,6 +24,8 @@ def get_subprocess_command(data):
     # Apply tty server
     if conf.tty_server == "gotty":
         args.extend([conf.gotty_path, "-w", "--once", "-p", port])
+    elif conf.tty_server == "ttyd":
+        args.extend([conf.ttyd_path, "--once", "-p", port, "--max-clients", "1"])
     else:
         raise ValueError("tty_server " + conf.tty_server + " not recognized.")
 
