@@ -1,7 +1,7 @@
 import pytest
 from ruamel import yaml
 
-from runthis_server.config import Config, get_config_from_yaml
+from runthis.server.config import Config, get_config_from_yaml
 
 
 @pytest.fixture
