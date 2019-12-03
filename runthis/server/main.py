@@ -7,8 +7,8 @@ from argparse import ArgumentParser
 
 from quart import Quart, redirect, request
 
-from runthis_server.config import Config, get_config_from_yaml
-from runthis_server.langs import find_lang
+from runthis.server.config import Config, get_config_from_yaml
+from runthis.server.langs import find_lang
 
 
 app = Quart("runthis-server")
