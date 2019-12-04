@@ -1,0 +1,48 @@
+{% set name = "runthis-server" %}
+{% set version = environ.get('GIT_DESCRIBE_TAG', 'untagged')|string|replace('-','_') %}
+{% set build_number = (environ.get('GIT_DESCRIBE_NUMBER')|int + 1000)|string %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ environ.get('GIT_DESCRIBE_TAG', '') }}
+
+source:
+  git_url: {{ environ.get('FEEDSTOCK_ROOT', '..') }}
+  version: {{ version }}
+
+build:
+  number: {{ build_number }}
+  string: {{ environ.get('GIT_BUILD_STR', '') }}
+  noarch: python
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+  run:
+    - python >=3.6
+    - ruamel.yaml
+    - quart
+
+test:
+  imports:
+    - runthis.server
+  commands:
+    - runthis-server --help
+    - pytest
+  requires:
+    - pytest
+  source_files:
+    - tests/
+
+about:
+  home: https://github.com/regro/runthis-server
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - scopatz
+

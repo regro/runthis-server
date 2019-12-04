@@ -36,7 +36,7 @@ DICT_CONFIG_CONTENT = dict(
 def test_populate_config_by_yaml(config_content, tmpdir):
     yaml_path = tmpdir.join("TEST.yaml")
     yaml_path.write(yaml.dump(config_content))
-    config_read = get_config_from_yaml(str(yaml_path))
+    config_obj = get_config_from_yaml(str(yaml_path))
     assert config_obj.tty_server == "tty-server"
     assert config_obj.command == "myshell"
     assert config_obj.docker
