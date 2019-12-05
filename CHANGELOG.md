@@ -2,4 +2,4 @@
 runthis-server Change Log
 =========================
 
-.. current developments
+<!-- current developments -->
