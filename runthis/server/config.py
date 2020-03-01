@@ -12,6 +12,7 @@ class Config:
     docker: bool = True
     docker_image: str = "ubuntu:latest"
     gotty_path: str = "gotty"
+    host: str = "127.0.0.1"
     port: int = 5000
     tty_server: str = "gotty"
     tty_server_port_start: int = 8080
@@ -75,6 +76,7 @@ def get_config_from_yaml(yaml_path, config=None):
     config.docker = yaml_attr("docker")
     config.docker_image = yaml_attr("docker_image")
     config.gotty_path = yaml_attr("gotty_path")
+    config.host = yaml_attr("host")
     config.port = yaml_attr("port")
     config.tty_server = yaml_attr("tty_server")
     config.tty_server_port_start = yaml_attr("tty_server_port_start")

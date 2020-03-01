@@ -13,7 +13,27 @@ from runthis.server.langs import find_lang
 
 app = Quart("runthis-server")
 procs = {}
-conf = cnt = lang = None
+conf = cnt = lang = redirect_base = None
+
+
+def _get_ip():
+    from urllib import request
+
+    ip = request.urlopen("https://api.ipify.org").read().decode("utf8")
+    return ip
+
+
+def _setup_redirect_base(host):
+    global redirect_base
+    # this must be a valid url that ends in a colon
+    # so that the port can be appeneded to it.
+    if host == "127.0.0.1":
+        redirect_base = "http://0.0.0.0:"
+    elif host == "0.0.0.0":
+        ip = _get_ip()
+        redirect_base = f"http://{ip}:"
+    else:
+        redirect_base = f"http://{host}:"
 
 
 def get_subprocess_command(data):
@@ -34,7 +54,7 @@ def get_subprocess_command(data):
     presetup = data.get("presetup", "")
     if presetup or setup:
         d = tempfile.TemporaryDirectory(prefix="setup")
-        with open(os.path.join(d.name, "setup"), 'wt') as f:
+        with open(os.path.join(d.name, "setup"), "wt") as f:
             f.write(presetup)
             f.write("\n")
             f.write(lang.echo_setup(setup))
@@ -48,6 +68,7 @@ def get_subprocess_command(data):
             args.extend(["-v", d.name + ":/mnt"])
         args.append(conf.docker_image)
 
+    # apply command
     args.append(conf.command)
     if presetup or setup:
         args.extend(lang.run_setup_args(conf, d))
@@ -55,7 +76,7 @@ def get_subprocess_command(data):
     return cmd, port, d
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 async def root():
     data = await request.get_json()
     if data is None:
@@ -64,13 +85,11 @@ async def root():
     print("data:", data)
     cmd, port, d = get_subprocess_command(data)
     proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
+        cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
     procs[port] = (proc, d)
     print(procs)
-    return redirect("http://0.0.0.0:" + port)
+    return redirect(redirect_base + port)
 
 
 @app.after_serving
@@ -82,9 +101,8 @@ async def create_db_pool():
 
 
 def make_parser():
-    p = ArgumentParser('runthis-server')
-    p.add_argument('--config', help='Path to config file',
-                   default='runthis-server.yml')
+    p = ArgumentParser("runthis-server")
+    p.add_argument("--config", help="Path to config file", default="runthis-server.yml")
     return p
 
 
@@ -97,14 +115,15 @@ def main(args=None):
     if os.path.isfile(ns.config):
         conf = get_config_from_yaml(ns.config)
     else:
-        print('No config file found!')
+        print("No config file found!")
         conf = Config()
     lang = find_lang(conf)
 
     # start up server
     print(conf)
+    _setup_redirect_base(conf.host)
     cnt = count(conf.tty_server_port_start)
-    app.run(port=conf.port)
+    app.run(host=conf.host, port=conf.port)
 
 
 if __name__ == "__main__":
