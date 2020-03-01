@@ -9,7 +9,7 @@ $ACTIVITIES = [
     'push_tag',
     'ghrelease',
     'pypi',
-    #'conda_forge',
+    'conda_forge',
 ]
 
 $AUTHORS_FILENAME = 'AUTHORS.md'
