@@ -1,9 +1,9 @@
 @echo off
 call :s_which py.exe
 if not "%_path%" == "" (
-  py -3 -m runthis_server %*
+  py -3 -m runthis.server %*
 ) else (
-  python -m runthis_server %*
+  python -m runthis.server %*
 )
 
 goto :eof

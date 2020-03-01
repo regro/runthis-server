@@ -16,6 +16,7 @@ class Config:
     port: int = 5000
     tty_server: str = "gotty"
     tty_server_port_start: int = 8080
+    ttyd_path: str = "ttyd"
 
 
 def ensure_list(var):
@@ -79,4 +80,5 @@ def get_config_from_yaml(yaml_path, config=None):
     config.port = yaml_attr("port")
     config.tty_server = yaml_attr("tty_server")
     config.tty_server_port_start = yaml_attr("tty_server_port_start")
+    config.ttyd_path = yaml_attr("ttyd_path")
     return config
