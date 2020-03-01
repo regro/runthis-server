@@ -12,7 +12,7 @@ from runthis_server.config import Config, get_config_from_yaml
 
 app = Quart("runthis-server")
 procs = {}
-conf = cnt = None
+conf = cnt = redirect_base = None
 
 
 def _setup_run_python(d):
@@ -27,6 +27,26 @@ def _setup_run_xonsh(d):
         return ["--rc", "/mnt/setup"]
     else:
         return ["--rc", os.path.join(d.name, "setup")]
+
+
+def _get_ip():
+    from urllib import request
+
+    ip = request.urlopen('https://api.ipify.org').read().decode('utf8')
+    return ip
+
+
+def _setup_redirect_base(host):
+    global redirect_base
+    # this must be a valid url that ends in a colon
+    # so that the port can be appeneded to it.
+    if host == "127.0.0.1":
+        redirect_base = 'http://0.0.0.0:'
+    elif host == "0.0.0.0":
+        ip = _get_ip()
+        redirect_base = f"http://{ip}:"
+    else:
+        redirect_base = f"http://{host}:"
 
 
 SETUP_RUNNERS = [
@@ -47,7 +67,7 @@ def get_setup_run(d):
 
 
 def get_subprocess_command(data):
-    global conf, cnt
+    global conf, cnt,
     args = []
     port = str(next(cnt))
     d = None
@@ -75,6 +95,7 @@ def get_subprocess_command(data):
             args.extend(["-v", d.name + ":/mnt"])
         args.append(conf.docker_image)
 
+    # apply command
     args.append(conf.command)
     if presetup or setup:
         args.extend(get_setup_run(d))
@@ -93,7 +114,7 @@ async def root():
     )
     procs[port] = (proc, d)
     print(procs)
-    return redirect("http://0.0.0.0:" + port)
+    return redirect(redirect_base + port)
 
 
 @app.after_serving
@@ -125,8 +146,9 @@ def main(args=None):
 
     # start up server
     print(conf)
+    _setup_redirect_base(conf.host)
     cnt = count(conf.tty_server_port_start)
-    app.run(port=conf.port)
+    app.run(host=conf.host, port=conf.port)
 
 
 if __name__ == "__main__":

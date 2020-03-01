@@ -27,6 +27,7 @@ DICT_CONFIG_CONTENT = dict(
         command="myshell",
         docker=True,
         docker_image="img",
+        host="8.8.8.8",
 )
 
 
@@ -41,3 +42,4 @@ def test_populate_config_by_yaml(config_content, tmpdir):
     assert config_obj.command == "myshell"
     assert config_obj.docker
     assert config_obj.docker_image == "img"
+    assert config_obj.host == "8.8.8.8"
