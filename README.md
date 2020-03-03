@@ -94,3 +94,26 @@ runthis:
     host: 0.0.0.0
     port: 80
 ```
+
+## Request Parameters
+Requests of the server are be made to the URL `f"http://{host}:{port}"`.
+However, this URL accepts either GET or POST requests and takes
+the following parameters as options.
+
+**presetup:** This is code that the new interpreter session is initialized.
+It is executed without any notification to the user.
+
+**setup:** This is code that is executed right when the interpreter starts
+up, after the presetup code is executed. Additionally, this code is echoed
+(printed in its source form) to the user prior to being execute. This is
+good for running examples.
+
+For example, the following GET request would run `import sys` silently, and then
+execute `print(sys.executable)` after printing literally `"print(sys.executable)"`.
+
+```
+http://127.0.0.1:5000/?presetup=import+sys&setup=print%28sys.executable%29
+```
+
+Usually, you should have a URL encoding library generate these URLs from
+source code for you.
