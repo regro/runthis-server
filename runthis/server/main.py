@@ -106,9 +106,8 @@ def make_parser():
     return p
 
 
-def main(args=None):
+def startup(args=None):
     global conf, cnt, lang
-
     p = make_parser()
     ns = p.parse_args(args=args)
 
@@ -123,8 +122,26 @@ def main(args=None):
     print(conf)
     _setup_redirect_base(conf.host)
     cnt = count(conf.tty_server_port_start)
+
+
+def main(args=None):
+    """Main entrypoint for runthis-server in testing."""
+    global conf, cnt, lang
+    startup(args=args)
     app.run(host=conf.host, port=conf.port)
-    return app
+
+
+async def hypercorn(scope, receive, send):
+    """Main entrypoint for runthis-server in production using hypercorn."""
+    from hypercorn.asyncio import serve
+    from hypercorn.config import Config as HypercornConfig
+
+    global conf, cnt, lang
+    startup(args=[])
+    hcconfig = HypercornConfig.from_mapping(
+        bind=f"{conf.host}:{conf.port}",
+    )
+    await serve(app, hcconfig)
 
 
 if __name__ == "__main__":
