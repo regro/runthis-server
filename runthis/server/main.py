@@ -124,6 +124,7 @@ def main(args=None):
     _setup_redirect_base(conf.host)
     cnt = count(conf.tty_server_port_start)
     app.run(host=conf.host, port=conf.port)
+    return app
 
 
 if __name__ == "__main__":
