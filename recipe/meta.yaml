@@ -15,6 +15,8 @@ build:
   string: {{ environ.get('GIT_BUILD_STR', '') }}
   noarch: python
   script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - runthis-server = runthis.server.main:main
 
 requirements:
   host:
@@ -45,4 +47,3 @@ about:
 extra:
   recipe-maintainers:
     - scopatz
-
