@@ -140,6 +140,8 @@ async def hypercorn(scope, receive, send):
     startup(args=[])
     hcconfig = HypercornConfig.from_mapping(
         bind=f"{conf.host}:{conf.port}",
+        certfile=conf.certfile,
+        keyfile=conf.keyfile,
     )
     await serve(app, hcconfig)
 
