@@ -14,7 +14,7 @@ $ conda install -c conda-forge runthis-server
 $ pip install runthis-server
 ```
 
-## Usage
+## Test Usage
 You can start up the server with the `runthis-server` command line utility.
 
 ```sh
@@ -26,6 +26,23 @@ optional arguments:
   --config CONFIG  Path to config file
 ```
 
+## Production Usage
+For production, we recomment using
+[`hypercorn`](https://pgjones.gitlab.io/hypercorn), as the server here is
+a Quart application. To use RunThis Server + hypercorn together, run the
+following command:
+
+```sh
+$ hypercorn runthis.server.main:hypercorn
+```
+
+**Note:** Currently there is no way to pass a path to a config file into the
+runthis server when running under hypercorn. The server will just look for
+a `runthis-server.yml` file in the current working directory and use that.
+If such a file does not exist, the default values will be used! Please
+change directory into the location of the `runthis-server.yml` file before
+running hypercorn.
+
 ## Configuration
 By default, the server is configured to run by looking for a `runthis-server.yml` file
 in the current working directory. You can pass in a specific configuration file with
@@ -35,6 +52,11 @@ All configuration variables are optional. The following lists there meaning and
 default values. Usually, these appear as top-level keys in the YAML file:
 
 ```yaml
+# The path to the public certificate file. This is currently only
+# used by the hypercorn interface, and is passed directly though
+# to hypercorn's configuration.
+certfile: None
+
 # The command variable is a string that lists ths command, or path
 # to run whenever a new instance is requested. Nominally, this is
 # a command that starts a REPL, but doesn't have to be.
@@ -61,6 +83,11 @@ docker_image: "ubuntu:latest"
 #  0.0.0.0     -> IP address of server as seen by https://api.ipify.org
 #  IP or CNAME -> Same IP or CNAME
 host: "127.0.0.1"
+
+# The path to the private certificate file. This is currently only
+# used by the hypercorn interface, and is passed directly though
+# to hypercorn's configuration.
+certfile: None
 
 # The port variable is an int that specifies the port number that the
 # the RunThis Server itself operates on. The TTY redirects go to
