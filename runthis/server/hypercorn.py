@@ -15,7 +15,7 @@ main.lang = main.find_lang(main.conf)
 
 # start up server
 print(main.conf)
-main._setup_redirect_base(main.conf.host)
+main._setup_redirect_base(main.conf)
 main.cnt = count(main.conf.tty_server_port_start)
 
 app = main.app
