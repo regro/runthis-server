@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 
 from quart import Quart, redirect, request
 
+from runthis.server import __version__
 from runthis.server.config import Config, get_config_from_yaml
 from runthis.server.langs import find_lang
 
@@ -90,6 +91,11 @@ async def root():
     procs[port] = (proc, d)
     print(procs)
     return redirect(redirect_base + port)
+
+
+@app.route("/version")
+async def version():
+    return __version__
 
 
 @app.after_serving
