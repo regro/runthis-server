@@ -3,6 +3,7 @@ import os
 from itertools import count
 
 from . import main
+from .config import Config
 
 
 if os.path.isfile("runthis-server.yml"):
@@ -15,6 +16,6 @@ main.lang = main.find_lang(main.conf)
 # start up server
 print(main.conf)
 main._setup_redirect_base(main.conf.host)
-cnt = count(main.conf.tty_server_port_start)
+main.cnt = count(main.conf.tty_server_port_start)
 
 app = main.app
