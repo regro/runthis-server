@@ -4,7 +4,19 @@ runthis-server Change Log
 
 
 
+
 <!-- current developments -->
+
+## v0.0.4
+**Fixed:**
+
+* hypercorn now works with certificates.
+
+**Authors:**
+
+* Anthony Scopatz
+
+
 
 ## v0.0.3
 **Added:**
