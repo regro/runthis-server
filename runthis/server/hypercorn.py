@@ -1,5 +1,6 @@
 """Hypercorn main entry point"""
 import os
+from itertools import count
 
 from . import main
 
