@@ -33,7 +33,16 @@ a Quart application. To use RunThis Server + hypercorn together, run the
 following command:
 
 ```sh
-$ hypercorn runthis.server.main:hypercorn
+$ hypercorn runthis.server.hypercorn:app
+```
+
+Or if you need to run with HTTPS certificates:
+
+```sh
+$ hypercorn runthis.server.hypercorn:app \
+    --certfile /pat/to/certs/fullchain.pem \
+    --keyfile /path/to/certs/privkey.pem \
+    --bind 0.0.0.0:80
 ```
 
 **Note:** Currently there is no way to pass a path to a config file into the

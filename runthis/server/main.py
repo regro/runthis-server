@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 
 from quart import Quart, redirect, request
 
+from runthis.server import __version__
 from runthis.server.config import Config, get_config_from_yaml
 from runthis.server.langs import find_lang
 
@@ -23,17 +24,22 @@ def _get_ip():
     return ip
 
 
-def _setup_redirect_base(host):
+def _setup_redirect_base(conf):
     global redirect_base
     # this must be a valid url that ends in a colon
     # so that the port can be appeneded to it.
-    if host == "127.0.0.1":
-        redirect_base = "http://0.0.0.0:"
-    elif host == "0.0.0.0":
+    if conf.host == "127.0.0.1":
+        base = "http://0.0.0.0:"
+    elif conf.host == "0.0.0.0":
         ip = _get_ip()
-        redirect_base = f"http://{ip}:"
+        base = f"http://{ip}:"
     else:
-        redirect_base = f"http://{host}:"
+        base = f"http://{conf.host}:"
+    # check if we are using HTTPS
+    if conf.certfile and conf.keyfile:
+        base = "https://" + base[7:]
+    # save
+    redirect_base = base
 
 
 def get_subprocess_command(data):
@@ -44,6 +50,10 @@ def get_subprocess_command(data):
     # Apply tty server
     if conf.tty_server == "gotty":
         args.extend([conf.gotty_path, "-w", "--once", "-p", port])
+        if conf.certfile and conf.keyfile:
+            args.extend(
+                ["--tls", "--tls-crt", conf.certfile, "--tls-key", conf.keyfile]
+            )
     elif conf.tty_server == "ttyd":
         args.extend([conf.ttyd_path, "--once", "-p", port, "--max-clients", "1"])
     else:
@@ -92,6 +102,11 @@ async def root():
     return redirect(redirect_base + port)
 
 
+@app.route("/version")
+async def version():
+    return __version__
+
+
 @app.after_serving
 async def create_db_pool():
     print(procs)
@@ -120,7 +135,7 @@ def startup(args=None):
 
     # start up server
     print(conf)
-    _setup_redirect_base(conf.host)
+    _setup_redirect_base(conf)
     cnt = count(conf.tty_server_port_start)
 
 
@@ -129,21 +144,6 @@ def main(args=None):
     global conf, cnt, lang
     startup(args=args)
     app.run(host=conf.host, port=conf.port)
-
-
-async def hypercorn(scope, receive, send):
-    """Main entrypoint for runthis-server in production using hypercorn."""
-    from hypercorn.asyncio import serve
-    from hypercorn.config import Config as HypercornConfig
-
-    global conf, cnt, lang
-    startup(args=[])
-    hcconfig = HypercornConfig.from_mapping(
-        bind=f"{conf.host}:{conf.port}",
-        certfile=conf.certfile,
-        keyfile=conf.keyfile,
-    )
-    await serve(app, hcconfig)
 
 
 if __name__ == "__main__":
