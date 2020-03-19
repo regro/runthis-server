@@ -1,4 +1,6 @@
 """Hypercorn main entry point"""
+import os
+
 from . import main
 
 
